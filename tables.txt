@@ -1,0 +1,124 @@
+=== TABLE 1 rows 7 cols 5
+No | Tahapan | Bulan ke-1 | Bulan ke-2 | Bulan ke-3
+1 | Studi literatur, analisis kebutuhan & rekaman baseline (Analysis) | ✓ |  | 
+2 | Perumusan model sistem, uji CUSUM & ambang sadar-biaya (Design) | ✓ |  | 
+3 | Replay offline & gateway uji paralel (Simulation Prototyping) | ✓ | ✓ | 
+4 | Mode bayangan lalu aktif pada jaringan RT/RW Net (Implementation) |  | ✓ | 
+5 | Pengujian & pengumpulan data E, U, F, dan QoS (Monitoring) |  | ✓ | ✓
+6 | Analisis data, evaluasi hipotesis, penyusunan laporan (Management) |  |  | ✓
+=== TABLE 2 rows 10 cols 4
+No | Perangkat | Spesifikasi / Model | Fungsi dalam Sistem
+1 | Router MikroTik | RB1100AHx4, ARM | Router produksi; eksekutor PCC yang menerima pembaruan pemetaan kelompok dari kontroler via API
+2 | Modem/ONT Fiber Optic | [isi model, kapasitas paket IndiHome]; 4 port LAN | Terminasi WAN1 (FO); port LAN cadangan untuk gateway uji
+3 | Terminal Starlink A | Standard / Gen 4 / Residensial; 2 port LAN [konfirmasi mode bypass] | Terminasi WAN2 (LEO); port LAN cadangan untuk gateway uji
+4 | Terminal Starlink B | Standard / Gen 4 / Residensial; 2 port LAN | Terminasi WAN3 (LEO); port LAN cadangan untuk gateway uji
+5 | Gateway uji paralel | MikroTik kedua (RouterOS 7) dan/atau mini-PC Linux [isi model] | Menjalankan kebijakan pembanding secara serentak tanpa memengaruhi pelanggan; titik injeksi gangguan
+6 | Server Controller | mini PC / Raspberry Pi [isi CPU, RAM, storage] | Menjalankan probe, CUSUM dua arah, penurunan ambang, peta aksi, kuantisasi, dan pemanggilan API
+7 | Switch Client | 24 port switch | Distribusi jaringan LAN ke perangkat pelanggan
+8 | Switch uji | 5–8 port [isi model] | Segmen LAN gateway uji untuk klien uji
+9 | Laptop/PC pengujian | ACER / Aspire go 14 / intel core ultra 5 | Klien uji dan alat ukur QoS (ping, iperf3, speedtest)
+=== TABLE 3 rows 10 cols 4
+No | Perangkat Lunak | Versi/Keterangan | Fungsi dalam Sistem
+1 | RouterOS (MikroTik) | 7.22.2 (stable) | Sistem operasi router; menyediakan REST API, PCC, dan statistik tabel koneksi
+2 | Sistem operasi Server Controller | Ubuntu Server 22.04 LTS | Lingkungan eksekusi layanan kontroler
+3 | Bahasa pemrograman | Python 3.11.9 | Implementasi probe, CUSUM dua arah, penurunan ambang, peta aksi, dan kuantisasi
+4 | Pustaka komunikasi API MikroTik | RouterOS REST API / librouteros | Pembacaan statistik dan pembaruan pemetaan kelompok PCC
+5 | Pustaka komputasi | NumPy, SciPy, pandas | Kalibrasi , perhitungan LLR, dan analisis statistik
+6 | Basis data | [isi, mis. SQLite / InfluxDB] | Penyimpanan deret waktu sampel probe, statistik CUSUM, dan log keputusan
+7 | Aktuator pembanding | Linux nftables (jhash) | Realisasi pembagi berbasis hash netral-vendor pada gateway uji
+8 | Injeksi gangguan | tc/netem | Emulasi loss dan delay pada uplink uji
+9 | Alat ukur QoS pendukung | Wireshark, ping, iperf3, speedtest-cli | Validasi silang dan pengukuran QoS sisi klien
+=== TABLE 4 rows 9 cols 4
+No | Kolom | Tipe Data | Keterangan
+1 | timestamp, siklus_k | DATETIME, INT | Waktu dan nomor siklus pengamatan
+2 | link_id | VARCHAR | Identitas jalur (FO / SL-A / SL-B) beserta grup risiko bersama
+3 | rtt_ms, loss, bad | FLOAT, BOOL | RTT dan status hilang per target probe; bad = 1 bila hilang atau RTT > median bergulir + 30 ms
+4 | pola_y, llr | CHAR(2), FLOAT | Pola pengamatan multi-target dan LLR hasil subbab 2.5.3
+5 | S_down, S_up, h_down, h_up | FLOAT | Statistik CUSUM dua arah dan ambang aktif (subbab 2.5.4)
+6 | status | ENUM | SEHAT / DIEVAKUASI per jalur
+7 | bucket_map | VARCHAR | Pemetaan kelompok hash ke jalur yang aktif, untuk audit frekuensi rekonfigurasi
+8 | laju_baru, umur_median, headroom | FLOAT | Ringkasan tabel koneksi per menit untuk loop lambat
+=== TABLE 5 rows 3 cols 5
+Jalur | Pola 00 (normal) | Pola 10 (target 1 saja) | Pola 01 (target 2 saja) | Pola 11 (kedua target)
+LEO (Starlink) | 0,9813 | 0,0096 | 0,0061 | 0,0031
+FO | 0,9969 | 0,0007 | 0,0012 | 0,0012
+=== TABLE 6 rows 3 cols 7
+Jalur | ℓ(11) | ℓ(lainnya) | D↓ | D↑ | Tunda evakuasi (s) | Tunda pulih (s)
+LEO (Starlink) | 4,40 | −0,288 | 0,90 | 0,27 | ≈ 46 | ≈ 150
+FO | 5,34 | −0,288 | 1,12 | 0,28 | ≈ 37 | ≈ 148
+=== TABLE 7 rows 5 cols 3
+No | Jenis Variabel | Uraian
+1 | Variabel bebas | Kebijakan penyesuaian rasio, empat level: (a) PCC statis 1:1:1 (baseline), (b) histeresis k-sampel-berturut, (c) CUSUM dua arah simetris, (d) CUSUM dua arah dengan ambang asimetris sadar-biaya (usulan); rasio asimetri tetap ×2, ×4, ×8 sebagai analisis sensitivitas
+2 | Variabel terikat | Paparan E (porsi beban pada jalur terdegradasi), kapasitas tertahan U, frekuensi rekonfigurasi F per jam, tunda evakuasi dan pemulihan, alarm palsu, serta QoS sisi klien (delay, jitter, packet loss, throughput)
+3 | Variabel kontrol | Lokasi, interval siklus Δt, target probe, jumlah kelompok N, rasio nominal, durasi pengamatan; pada gateway uji: klien dan pola trafik uji yang identik untuk semua kebijakan
+4 | Variabel yang diamati (tidak dimanipulasi) | Kondisi cuaca (cerah/hujan), jam sibuk/normal, headroom kapasitas, dan laju koneksi baru, dicatat untuk analisis stratifikasi
+=== TABLE 8 rows 6 cols 3
+No | Skenario | Konfigurasi Sistem
+A | Baseline | PCC statis dengan rasio tetap 1:1:1 (konfigurasi eksisting lokasi penelitian)
+B | Histeresis k-sampel-berturut | Status jalur berubah setelah k sampel buruk atau baik berturut-turut (praktik failover umum)
+C | CUSUM simetris | Uji dua arah dengan  dan peta aksi yang sama dengan skenario D
+D | Usulan | CUSUM dua arah, ambang asimetris sadar-biaya, peta aksi SRLG, dan kuantisasi perubahan minimal (subbab 2.5)
+E | Acuan batas | FO sebagai jalur utama dengan failover ke Starlink; digunakan untuk menempatkan kurva E–U, bukan sebagai kandidat
+=== TABLE 9 rows 3 cols 4
+No | Hipotesis | Variabel yang Dibandingkan | Uji Statistik
+1 | H1: ambang asimetris sadar-biaya menurunkan E pada U setara dan menurunkan F | E, U, dan F per jam: Skenario D vs B dan D vs C | Uji-t berpasangan (data normal) atau Wilcoxon signed-rank (data tidak normal)
+2 | H2: sistem usulan menurunkan E dan memperbaiki QoS klien | E dan QoS klien per jam: Skenario D vs A | Uji-t berpasangan atau Wilcoxon signed-rank, sesuai hasil uji normalitas
+=== TABLE 10 rows 20 cols 6
+No | Penulis, Tahun, dan DOI | Objek atau Masalah | Metode | Hasil | Celah atau Keterbatasan
+1 | Page, 1954 / 10.1093/​biomet/41.1-2.100 | Deteksi pergeseran proses secepat mungkin dari pengamatan berurutan. | Prosedur Cumulative Sum (CUSUM) yang mengakumulasi bukti dan membandingkannya dengan ambang. | Fondasi deteksi perubahan sekuensial yang masih menjadi acuan. | Tidak membahas biaya keputusan yang berbeda arah maupun komitmen per-koneksi.
+2 | Lorden, 1971; Moustakides, 1986 / 10.1214/​aoms/1177693055; 10.1214/aos/1176350164 | Optimalitas prosedur deteksi perubahan. | Kriteria minimaks tunda deteksi terhadap batas ARL alarm palsu. | CUSUM optimal asimtotik lalu optimal eksak; tunda ≈ h/D, ARL ≈ e^h. | Kerangka satu arah; asimetri biaya evakuasi dan pemulihan tidak dirumuskan.
+3 | Xie dkk., 2021 / 10.1109/​JSAIT.2021.3072962 | Tinjauan deteksi perubahan sekuensial klasik dan arah baru. | Survei teoretis (CUSUM, Shiryaev–Roberts, multi-sensor, data-driven). | Memetakan hubungan tunda deteksi, alarm palsu, dan informasi KL. | Tidak diterapkan pada pembagian beban multi-WAN.
+4 | Wang, Zhang & Shin, 2002 / 10.1109/​INFCOM.2002.1019404 | Deteksi serangan SYN flooding pada jaringan. | CUSUM nonparametrik atas selisih paket SYN dan FIN. | Deteksi cepat dengan alarm palsu rendah dan komputasi ringan. | Fokus keamanan; tidak memetakan deteksi ke keputusan alokasi trafik.
+5 | Tartakovsky dkk., 2006 / 10.1109/​TSP.2006.879308 | Deteksi intrusi jaringan secara adaptif. | Deteksi perubahan sekuensial dan batch-sequential adaptif. | Tunda deteksi kecil pada batas alarm palsu yang ditentukan. | Ambang dipilih dari batas alarm palsu, bukan dari biaya keputusan yang asimetris.
+6 | Juan dkk., 2022 / 10.1109/​ACCESS.2022.3203189 | Handover 5G NR pada jaringan satelit LEO. | Simulasi tingkat sistem atas prosedur handover berbasis pengukuran, CHO, dan alternatifnya. | Prosedur terestrial dengan histeresis dan TTT tidak optimal pada sel LEO yang bergerak. | Parameter histeresis ditala untuk sinyal radio, bukan untuk komitmen koneksi pada multi-WAN.
+7 | Alhabo & Zhang, 2018 / 10.1109/​ACCESS.2018.2878489 | Handover tidak perlu dan pemerataan beban pada HetNet. | Margin handover yang bergantung pada beban sel tujuan. | Peningkatan throughput dan pemerataan beban dibanding margin tetap. | Margin bergantung beban tetapi tidak diturunkan dari biaya komitmen; domain seluler.
+8 | Stevens-Navarro dkk., 2008 / 10.1109/​TVT.2007.907072 | Keputusan vertical handoff pada jaringan nirkabel heterogen. | Markov Decision Process dengan biaya pensinyalan peralihan. | Kebijakan optimal mengurangi peralihan dibanding heuristik. | Memerlukan model transisi lengkap; tidak membahas pembagian per-koneksi berbasis hash.
+9 | Tournaire dkk., 2023 / 10.1145/​3603532 | Penentuan nilai ambang optimal pada sistem auto-scaling. | Teori antrean dan MDP untuk ambang maju dan mundur. | Ambang aktivasi dan deaktivasi yang berbeda meniadakan osilasi. | Domain alokasi server cloud, bukan jaringan; tidak memuat biaya komitmen koneksi.
+10 | Cao, Wang & Zegura, 2000 / 10.1109/​INFCOM.2000.832203 | Pembagian beban Internet berbasis hash. | Analisis dan simulasi skema hash per-aliran. | Skema hash menjaga urutan paket dengan pemerataan yang dapat diterima. | Rasio statis; tidak membahas penyesuaian rasio saat jalur terdegradasi.
+11 | Akella dkk., 2008 / 10.1109/​TNET.2007.899068 | Manfaat kinerja multihoming route control. | Pengukuran skala besar dan simulasi pemilihan jalur berbasis pengukuran. | Pemilihan jalur dinamis memberi perbaikan berarti dibanding pemilihan statis. | Tidak membahas stabilitas keputusan maupun asimetri evakuasi–pemulihan.
+12 | Natarajan dkk., 2009 / 10.1016/​j.comcom.2009.05.001 | Transfer multipath SCTP saat jalur gagal. | Analisis receive buffer blocking dan status potentially-failed. | Jalur yang diduga gagal tidak dipakai sampai pulihnya terkonfirmasi. | Mekanisme lapisan transport; ambang tidak dikaitkan dengan biaya dan headroom.
+13 | Troia dkk., 2025 / ieeexplore.ieee.org/​document/11106828 | Arsitektur dan operasi SD-WAN. | Survei komprehensif rekayasa trafik, pemantauan, dan manajemen jalur. | Memetakan pemilihan jalur berbasis SLA dan probe pada SD-WAN. | Ambang SLA dan pengatur waktu bersifat konfigurasi heuristik.
+14 | Ali, Abouelatta & Youssef, 2025 / 10.1109/​ACCESS.2025.3529486 | Agregasi banyak ISP heterogen (FO, 4G/5G, LEO, GEO). | Dynamic Connectivity Hub berbasis ANN yang mengalokasikan data rate ke ISP terbaik. | Distribusi trafik adaptif lintas ISP terestrial dan satelit. | Memerlukan pelatihan ANN dan komputasi besar; tidak membahas komitmen per-koneksi dan osilasi.
+15 | Amalia dkk., 2022 / 10.1016/​j.procs.2022.12.116 | Ketimpangan beban pada jaringan dua ISP. | PCC + failover RouterOS; NDLC; evaluasi TIPHON. | Skor QoS 3,75 (jam sibuk) dan 4,00 (jam normal). | Rasio PCC statis; tidak ada umpan balik kondisi jalur.
+16 | Arfianita dkk., 2024 / 10.31763/​iota.v4i4.810 | Pembagian beban jaringan dengan tiga ISP. | PCC tiga jalur, simulasi GNS3, pengukuran QoS. | Throughput naik 9,32 Mbps, jitter turun 74,17 ms. | Kondisi laboratorium stabil; tidak menguji degradasi; rasio tetap.
+17 | Ma dkk., 2023 / 10.1109/​INFOCOM53939.2023.10228912 | Karakteristik jaringan Starlink dari sisi pengguna. | Pengukuran throughput, latensi, dan outage dari terminal pengguna. | Dinamika throughput dan latensi jauh lebih besar dibanding terestrial. | Deskriptif; tidak mengusulkan kebijakan alokasi trafik.
+18 | Garcia, Sundberg & Brunström, 2025 / 10.1145/​3748749.3749090 | Karakterisasi one-way delay Starlink. | Analisis lebih dari 500 juta paket probe selama 10 hari. | Uplink paling terdampak siklus rekonfigurasi 15 detik. | Tidak menawarkan strategi pembagian beban untuk meredam transien.
+19 | Hammer dkk., 2024 / 10.1145/​3697253.3697273 | Kinerja Starlink dari sisi edge router. | Pengukuran pasif dan analisis periodisitas throughput. | Pola penurunan periodik pada batas interval 15 detik. | Belum dihubungkan dengan kebijakan pembagian beban multi-WAN.
+=== TABLE 11 rows 37 cols 3
+no | urutan | nama
+1 | [1](Amalia et al., 2022) | E. R. Amalia dkk., "Computer network design and implementation using load balancing technique with per connection classifier (PCC) method based on MikroTik router," Procedia Computer Science, vol. 216, hlm. 103–111, 2022, doi: 10.1016/j.procs.2022.12.116.
+2 | [2](Ali et al., 2025) | H. Ali, M. A. Abouelatta, dan K. Y. Youssef, "Dynamic Connectivity Hub: Multiple ISPs Smart Aggregation for Optimized IoT Connectivity," IEEE Access, vol. 13, hlm. 18734–18748, 2025, doi: 10.1109/ACCESS.2025.3529486.
+3 | [3](Chen et al., 2025) | N. Chen dkk., "Network-Layer Perspectives on Satellite–Terrestrial Integrated Networks in 6G: A Comprehensive Review," Engineering, vol. 54, hlm. 69–92, 2025, doi: 10.1016/j.eng.2025.05.012.
+4 | [4](Ma et al., 2023) | S. Ma dkk., "Network Characteristics of LEO Satellite Constellations: A Starlink-Based Measurement from End Users," Proceedings - IEEE INFOCOM, vol. 2023-May, 2023, doi: 10.1109/INFOCOM53939.2023.10228912.
+5 | [5](Boeckenholt et al., 2024) | A. Boeckenholt dkk., "Towards a Weather-Based Prediction Model For Starlink Throughput," Mobilkommunikation; 28. ITG-Fachtagung, hlm. 131–135, 2024.
+6 | [6](Ullah et al., 2025) | M. A. Ullah dkk., "Impact of Weather on Satellite Communication: Evaluating Starlink Resilience," **, 2025.
+7 | [7](Garcia et al., 2025) | J. Garcia, S. Sundberg, dan A. Brunstrom, "A Detailed Characterization of Starlink One-way Delay," LEO-NET 2025 - Proceedings of the 2025 3rd Workshop on LEO Networking and Communication, Part of SIGCOMM 2025, hlm. 43–49, 2025, doi: 10.1145/3748749.3749090.
+8 | [8](Hammer et al., 2024) | S. M. Hammer dkk., "Starlink Performance through the Edge Router Lens," LEONET 2024 - Proceedings of the 2nd ACM Workshop on LEO Networking and Communication, Part of: ACM MobiCom 2024, hlm. 67–72, 2024, doi: 10.1145/3697253.3697273.
+9 | [9](Mohan et al., 2024) | N. Mohan dkk., "A Multifaceted Look at Starlink Performance," WWW 2024 - Proceedings of the ACM Web Conference, hlm. 2723–2734, 2024, doi: 10.1145/3589334.3645328.
+10 | [10](Cao et al., 2000) | Z. Cao, Z. Wang, dan E. Zegura, "Performance of hashing-based schemes for Internet load balancing," Proceedings of IEEE INFOCOM 2000, vol. 1, hlm. 332–341, 2000, doi: 10.1109/INFCOM.2000.832203.
+11 | [11](Kumar & Golash, 2009) | A. S.P. Kumar, dan M. Golash, "Efficient flow-aware dynamic link load balancing," 1st International Conference on Communication Systems and Networks and Workshops, COMSNETS 2009, 2009, doi: 10.1109/COMSNETS.2009.4808841.
+12 | [12](Arfianita et al., 2024) | A. Arfianita dkk., "Implementation of Load Balancing Using the PCC (Per Connection Classifier) Method on Computer Networks to Improve Responsiveness," Internet of Things and Artificial Intelligence Journal, vol. 4, no. 4, hlm. 601–615, 2024, doi: 10.31763/iota.v4i4.810.
+13 | [13](Duliades Mirsal & Herman Bedi Agtriadi, 2026) | D. Mirsal dan H. B. Agtriadi, "Comparative Analysis of PCC Load Balancing and Quality of Service (QoS) Queue Tree Methods on Mikrotik for Bandwidth Optimization," Jurnal E-Komtek (Elektronika-Komputer-Teknik), vol. 10, no. 1, hlm. 73–86, 2026, doi: 10.37339/e-komtek.v10i1.3170.
+14 | [14](Ji et al., 2026) | B. Ji dkk., "Inter-satellite link technologies and applications in Low Earth Orbit satellite networks," ICT Express, vol. 12, no. 3, hlm. 576–592, 2026, doi: 10.1016/j.icte.2026.03.001.
+15 | [15](Fu et al., 2024) | C. Fu, B. Wang, dan W. Wang, "Software-defined wide area networks (SD-WANs): A survey," Electronics, vol. 13, no. 15, hlm. 3011, 2024, doi: 10.3390/electronics13153011.
+16 | [16](Troia et al., 2025) | S. Troia dkk., "A comprehensive survey on software-defined wide area network," IEEE Communications Surveys & Tutorials, 2025. https://ieeexplore.ieee.org/document/11106828
+17 | [17](Yang et al., 2019) | Z. Yang dkk., "Software-defined wide area network (SD-WAN): Architecture, advances and opportunities," 2019 28th International Conference on Computer Communication and Networks (ICCCN), hlm. 1–9, 2019, doi: 10.1109/ICCCN.2019.8847124.
+18 | [18](Lorden, 1971) | G. Lorden, "Procedures for reacting to a change in distribution," The Annals of Mathematical Statistics, vol. 42, no. 6, hlm. 1897–1908, 1971, doi: 10.1214/aoms/1177693055.
+19 | [19](Page, 1954) | E. S. Page, "Continuous inspection schemes," Biometrika, vol. 41, no. 1-2, hlm. 100–115, 1954, doi: 10.1093/biomet/41.1-2.100.
+20 | [20](Xie et al., 2021) | L. Xie dkk., "Sequential (quickest) change detection: Classical results and new directions," IEEE Journal on Selected Areas in Information Theory, vol. 2, no. 2, hlm. 494–514, 2021, doi: 10.1109/JSAIT.2021.3072962.
+21 | [21](Tartakovsky et al., 2006) | A. G. Tartakovsky dkk., "A novel approach to detection of intrusions in computer networks via adaptive sequential and batch-sequential change-point detection methods," IEEE Transactions on Signal Processing, vol. 54, no. 9, hlm. 3372–3382, 2006, doi: 10.1109/TSP.2006.879308.
+22 | [22](Wang et al., 2002) | H. Wang, D. Zhang, dan K. G. Shin, "Detecting SYN flooding attacks," Proceedings of IEEE INFOCOM 2002, vol. 3, hlm. 1530–1539, 2002, doi: 10.1109/INFCOM.2002.1019404.
+23 | [23](Alhabo & Zhang, 2018) | M. Alhabo, dan L. Zhang, "Load-dependent handover margin for throughput enhancement and load balancing in HetNets," IEEE Access, vol. 6, hlm. 67718–67731, 2018, doi: 10.1109/ACCESS.2018.2878489.
+24 | [24](Juan et al., 2022) | E. Juan dkk., "Handover solutions for 5G low-earth orbit satellite networks," IEEE Access, vol. 10, hlm. 93309–93325, 2022, doi: 10.1109/ACCESS.2022.3203189.
+25 | [25](Tournaire et al., 2023) | T. Tournaire, H. Castel-Taleb, dan E. Hyon, "Efficient Computation of Optimal Thresholds in Cloud Auto-scaling Systems," ACM Transactions on Modeling and Performance Evaluation of Computing Systems, vol. 8, no. 4, 2023, doi: 10.1145/3603532.
+26 | [26](Cui et al., 2002) | W. Cui, I. Stoica, dan R. H. Katz, "Backup path allocation based on a link failure probability model in overlay networks," Proceedings of the 10th IEEE International Conference on Network Protocols (ICNP), 2002, doi: 10.1109/ICNP.2002.1181411.
+27 | [27](Nanang et al., 2024) | H. Nanang dkk., "Evaluating Quality of Service Standards on Computer Networks using Protocol Redundancy Gateway," 2024 3rd International Conference on Creative Communication and Innovative Technology, ICCIT 2024, 2024, doi: 10.1109/ICCIT62134.2024.10701222.
+28 | [28](Putra, 2024) | A. Putra, "JISA (Jurnal Informatika dan Sains) Implementation of Load Balancing With PCC Method And Failover Using Mikrotik At PT. Maxpower Indonesia," **, 2024.
+29 | [29](Hopps, 2000) | C. Hopps, "Analysis of an equal-cost multi-path algorithm," Internet Engineering Task Force, 2000, doi: 10.17487/RFC2992.
+30 | [30](Nugroho et al., 2023) | K. T. Nugroho dkk., "Quality Analysis of Service Load Balancing Using PCC, ECMP, and NTH Methods," Jurnal Nasional Pendidikan Teknik Informatika (JANAPATI), vol. 12, no. 1, hlm. 33–41, 2023, doi: 10.23887/janapati.v12i1.55894.
+31 | [31](Akella et al., 2008) | A. Akella dkk., "On the performance benefits of multihoming route control," IEEE/ACM Transactions on Networking, vol. 16, no. 1, hlm. 91–104, 2008, doi: 10.1109/TNET.2007.899068.
+32 | [32](Natarajan et al., 2009) | P. Natarajan dkk., "Concurrent multipath transfer during path failure," Computer Communications, vol. 32, no. 15, hlm. 1577–1587, 2009, doi: 10.1016/j.comcom.2009.05.001.
+33 | [33](Moustakides, 1986) | G. V. Moustakides, "Optimal stopping times for detecting changes in distributions," The Annals of Statistics, vol. 14, no. 4, hlm. 1379–1387, 1986, doi: 10.1214/aos/1176350164.
+34 | [34](Wang & Kuo, 2013) | L. Wang, dan G. S. G.S. Kuo, "Mathematical modeling for network selection in heterogeneous wireless networks - A tutorial," IEEE Communications Surveys and Tutorials, vol. 15, hlm. 271–292, 2013, doi: 10.1109/SURV.2012.010912.00044.
+35 | [35](Demir et al., 2022) | Y. Demir, M. S. J. Solaija, dan H. Arslan, "On the performance of handover mechanisms for non-terrestrial networks," 2022 IEEE 95th Vehicular Technology Conference (VTC2022-Spring), 2022, doi: 10.1109/VTC2022-Spring54318.2022.9860505.
+36 | [36](Stevens-Navarro et al., 2008) | E. Stevens-Navarro, Y. Lin, dan V. W. S. Wong, "An MDP-based vertical handoff decision algorithm for heterogeneous wireless networks," IEEE Transactions on Vehicular Technology, vol. 57, no. 2, hlm. 1243–1254, 2008, doi: 10.1109/TVT.2007.907072.
