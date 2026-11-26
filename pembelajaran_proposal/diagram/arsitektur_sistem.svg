@@ -1,0 +1,83 @@
+<svg width="720" height="640" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="720" height="640" fill="#f8fafc"/>
+  <text x="360" y="40" text-anchor="middle" font-size="22" font-weight="bold" fill="#0f172a">Arsitektur Sistem Dua Skala Waktu</text>
+  <text x="360" y="62" text-anchor="middle" font-size="13" fill="#475569">Loop cepat (detik) &amp; loop lambat (menit)</text>
+
+  <defs>
+    <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#334155"/>
+    </marker>
+    <style>
+      .box2 { fill:#ffffff; stroke:#1e293b; stroke-width:1.5; }
+      .c { fill:#e0f2fe; stroke:#0284c7; }
+      .l { fill:#ede9fe; stroke:#7c3aed; }
+      .txt2 { fill:#0f172a; font-size:14px; }
+      .sm2 { fill:#334155; font-size:12px; }
+    </style>
+  </defs>
+
+  <!-- Top: fast loop -->
+  <rect x="40" y="90" width="640" height="300" rx="12" fill="#eff6ff" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="360" y="115" text-anchor="middle" font-size="16" font-weight="bold" fill="#0284c7">LOOP CEPAT (per siklus probe, detik)</text>
+
+  <rect x="70" y="140" width="130" height="60" rx="8" class="box2 c"/>
+  <text x="135" y="166" text-anchor="middle" class="txt2" font-weight="bold">Probe</text>
+  <text x="135" y="185" text-anchor="middle" class="sm2">RTT &amp; loss</text>
+
+  <line x1="200" y1="170" x2="230" y2="170" stroke="#334155" stroke-width="2" marker-end="url(#arrow2)"/>
+
+  <rect x="232" y="140" width="130" height="60" rx="8" class="box2 c"/>
+  <text x="297" y="166" text-anchor="middle" class="txt2" font-weight="bold">Model observasi</text>
+  <text x="297" y="185" text-anchor="middle" class="sm2">pola → LLR</text>
+
+  <line x1="362" y1="170" x2="392" y2="170" stroke="#334155" stroke-width="2" marker-end="url(#arrow2)"/>
+
+  <rect x="394" y="140" width="140" height="60" rx="8" class="box2 c"/>
+  <text x="464" y="160" text-anchor="middle" class="txt2" font-weight="bold">CUSUM dua arah</text>
+  <text x="464" y="178" text-anchor="middle" class="sm2">S↓ / S↑</text>
+  <text x="464" y="193" text-anchor="middle" class="sm2">(akumulasi LLR)</text>
+
+  <line x1="534" y1="170" x2="564" y2="170" stroke="#334155" stroke-width="2" marker-end="url(#arrow2)"/>
+
+  <rect x="566" y="140" width="90" height="60" rx="8" class="box2 c"/>
+  <text x="611" y="160" text-anchor="middle" class="txt2" font-weight="bold">Bandingkan</text>
+  <text x="611" y="178" text-anchor="middle" class="sm2">dgn h↓/h↑</text>
+  <text x="611" y="193" text-anchor="middle" class="sm2">transisi status</text>
+
+  <rect x="70" y="230" width="250" height="60" rx="8" class="box2 c"/>
+  <text x="195" y="256" text-anchor="middle" class="txt2" font-weight="bold">Peta aksi SRLG</text>
+  <text x="195" y="275" text-anchor="middle" class="sm2">status → bobot target</text>
+
+  <line x1="320" y1="260" x2="350" y2="260" stroke="#334155" stroke-width="2" marker-end="url(#arrow2)"/>
+
+  <rect x="352" y="230" width="260" height="60" rx="8" class="box2 c"/>
+  <text x="482" y="250" text-anchor="middle" class="txt2" font-weight="bold">Kuantisasi hash minimal-remap</text>
+  <text x="482" y="270" text-anchor="middle" class="sm2">bobot → kelompok bulat (1/N)</text>
+  <text x="482" y="285" text-anchor="middle" class="sm2">→ tulis ke aktuator (PCC)</text>
+
+  <!-- arrow down to actuator -->
+  <line x1="482" y1="290" x2="482" y2="330" stroke="#334155" stroke-width="2" marker-end="url(#arrow2)"/>
+
+  <rect x="200" y="332" width="320" height="44" rx="8" class="box2"/>
+  <text x="360" y="360" text-anchor="middle" class="txt2" font-weight="bold">Aktuator: PCC RouterOS / nftables Linux</text>
+
+  <!-- Bottom: slow loop -->
+  <rect x="40" y="420" width="640" height="180" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="360" y="445" text-anchor="middle" font-size="16" font-weight="bold" fill="#7c3aed">LOOP LAMBAT (menit)</text>
+
+  <rect x="70" y="465" width="230" height="60" rx="8" class="box2 l"/>
+  <text x="185" y="491" text-anchor="middle" class="txt2" font-weight="bold">Estimasi biaya</text>
+  <text x="185" y="510" text-anchor="middle" class="sm2">λ, L, G, H dari tabel koneksi</text>
+
+  <line x1="300" y1="495" x2="330" y2="495" stroke="#334155" stroke-width="2" marker-end="url(#arrow2)"/>
+
+  <rect x="332" y="465" width="230" height="60" rx="8" class="box2 l"/>
+  <text x="447" y="491" text-anchor="middle" class="txt2" font-weight="bold">Perbarui ambang</text>
+  <text x="447" y="510" text-anchor="middle" class="sm2">h↓ / h↑ = f(biaya, headroom H)</text>
+
+  <!-- dotted link from slow loop back to fast -->
+  <line x1="447" y1="465" x2="447" y2="260" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow2)"/>
+  <text x="460" y="360" class="sm2" fill="#7c3aed">buat ambang terkini</text>
+
+  <text x="360" y="615" text-anchor="middle" font-size="12" fill="#94a3b8">Lihat: 08_ARSITEKTUR_SISTEM.md · proposal subbab 2.5.1</text>
+</svg>

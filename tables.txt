@@ -1,7 +1,7 @@
 === TABLE 1 rows 7 cols 5
 No | Tahapan | Bulan ke-1 | Bulan ke-2 | Bulan ke-3
 1 | Studi literatur, analisis kebutuhan & rekaman baseline (Analysis) | ✓ |  | 
-2 | Perumusan model sistem, uji CUSUM & ambang sadar-biaya (Design) | ✓ |  | 
+2 | Perumusan model sistem, uji CUSUM & ambang berbasis biaya keputusan (Design) | ✓ |  | 
 3 | Replay offline & gateway uji paralel (Simulation Prototyping) | ✓ | ✓ | 
 4 | Mode bayangan lalu aktif pada jaringan RT/RW Net (Implementation) |  | ✓ | 
 5 | Pengujian & pengumpulan data E, U, F, dan QoS (Monitoring) |  | ✓ | ✓
@@ -48,7 +48,7 @@ LEO (Starlink) | 4,40 | −0,288 | 0,90 | 0,27 | ≈ 46 | ≈ 150
 FO | 5,34 | −0,288 | 1,12 | 0,28 | ≈ 37 | ≈ 148
 === TABLE 7 rows 5 cols 3
 No | Jenis Variabel | Uraian
-1 | Variabel bebas | Kebijakan penyesuaian rasio, empat level: (a) PCC statis 1:1:1 (baseline), (b) histeresis k-sampel-berturut, (c) CUSUM dua arah simetris, (d) CUSUM dua arah dengan ambang asimetris sadar-biaya (usulan); rasio asimetri tetap ×2, ×4, ×8 sebagai analisis sensitivitas
+1 | Variabel bebas | Kebijakan penyesuaian rasio, empat level: (a) PCC statis 1:1:1 (baseline), (b) histeresis k-sampel-berturut, (c) CUSUM dua arah simetris, (d) CUSUM dua arah dengan ambang asimetris berbasis biaya keputusan (usulan); rasio asimetri tetap ×2, ×4, ×8 sebagai analisis sensitivitas
 2 | Variabel terikat | Paparan E (porsi beban pada jalur terdegradasi), kapasitas tertahan U, frekuensi rekonfigurasi F per jam, tunda evakuasi dan pemulihan, alarm palsu, serta QoS sisi klien (delay, jitter, packet loss, throughput)
 3 | Variabel kontrol | Lokasi, interval siklus Δt, target probe, jumlah kelompok N, rasio nominal, durasi pengamatan; pada gateway uji: klien dan pola trafik uji yang identik untuk semua kebijakan
 4 | Variabel yang diamati (tidak dimanipulasi) | Kondisi cuaca (cerah/hujan), jam sibuk/normal, headroom kapasitas, dan laju koneksi baru, dicatat untuk analisis stratifikasi
@@ -57,11 +57,11 @@ No | Skenario | Konfigurasi Sistem
 A | Baseline | PCC statis dengan rasio tetap 1:1:1 (konfigurasi eksisting lokasi penelitian)
 B | Histeresis k-sampel-berturut | Status jalur berubah setelah k sampel buruk atau baik berturut-turut (praktik failover umum)
 C | CUSUM simetris | Uji dua arah dengan  dan peta aksi yang sama dengan skenario D
-D | Usulan | CUSUM dua arah, ambang asimetris sadar-biaya, peta aksi SRLG, dan kuantisasi perubahan minimal (subbab 2.5)
+D | Usulan | CUSUM dua arah, ambang asimetris berbasis biaya keputusan, peta aksi SRLG, dan kuantisasi perubahan minimal (subbab 2.5)
 E | Acuan batas | FO sebagai jalur utama dengan failover ke Starlink; digunakan untuk menempatkan kurva E–U, bukan sebagai kandidat
 === TABLE 9 rows 3 cols 4
 No | Hipotesis | Variabel yang Dibandingkan | Uji Statistik
-1 | H1: ambang asimetris sadar-biaya menurunkan E pada U setara dan menurunkan F | E, U, dan F per jam: Skenario D vs B dan D vs C | Uji-t berpasangan (data normal) atau Wilcoxon signed-rank (data tidak normal)
+1 | H1: ambang asimetris berbasis biaya keputusan menurunkan E pada U setara dan menurunkan F | E, U, dan F per jam: Skenario D vs B dan D vs C | Uji-t berpasangan (data normal) atau Wilcoxon signed-rank (data tidak normal)
 2 | H2: sistem usulan menurunkan E dan memperbaiki QoS klien | E dan QoS klien per jam: Skenario D vs A | Uji-t berpasangan atau Wilcoxon signed-rank, sesuai hasil uji normalitas
 === TABLE 10 rows 20 cols 6
 No | Penulis, Tahun, dan DOI | Objek atau Masalah | Metode | Hasil | Celah atau Keterbatasan

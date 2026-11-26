@@ -1,0 +1,58 @@
+<svg width="720" height="560" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="720" height="560" fill="#f8fafc"/>
+  <text x="360" y="40" text-anchor="middle" font-size="22" font-weight="bold" fill="#0f172a">Frontier E–U dan Posisi Kebijakan</text>
+  <text x="360" y="62" text-anchor="middle" font-size="13" fill="#475569">Ilustrasi konseptual · E (paparan) vs U (kapasitas tertahan)</text>
+
+  <defs>
+    <style>
+      .ax { stroke:#1e293b; stroke-width:2; }
+      .grid { stroke:#cbd5e1; stroke-width:1; stroke-dasharray:4,3; }
+      .lbl { fill:#0f172a; font-size:14px; }
+      .sm3 { fill:#475569; font-size:12px; }
+    </style>
+  </defs>
+
+  <!-- axes -->
+  <line x1="90" y1="60" x2="90" y2="460" class="ax"/>
+  <line x1="90" y1="460" x2="620" y2="460" class="ax"/>
+
+  <!-- grid -->
+  <line x1="90" y1="140" x2="620" y2="140" class="grid"/>
+  <line x1="90" y1="220" x2="620" y2="220" class="grid"/>
+  <line x1="90" y1="300" x2="620" y2="300" class="grid"/>
+  <line x1="90" y1="380" x2="620" y2="380" class="grid"/>
+  <line x1="200" y1="60" x2="200" y2="460" class="grid"/>
+  <line x1="310" y1="60" x2="310" y2="460" class="grid"/>
+  <line x1="420" y1="60" x2="420" y2="460" class="grid"/>
+  <line x1="530" y1="60" x2="530" y2="460" class="grid"/>
+
+  <!-- axis labels -->
+  <text x="40" y="260" text-anchor="middle" class="lbl" transform="rotate(-90 40 260)">Paparan E (makin atas = makin buruk)</text>
+  <text x="355" y="500" text-anchor="middle" class="lbl">Kapasitas tertahan U (makin kanan = makin boros)</text>
+
+  <!-- frontier curve (good: lower-left) -->
+  <path d="M120,440 C220,400 300,330 380,250 C450,180 520,140 580,120" fill="none" stroke="#0284c7" stroke-width="3"/>
+  <text x="480" y="120" class="sm3" fill="#0284c7">Frontier E–U (CUSUM asimetris)</text>
+
+  <!-- baseline A -->
+  <circle cx="200" cy="300" r="9" fill="#ef4444"/>
+  <text x="215" y="295" class="sm3" fill="#ef4444" font-weight="bold">A (PCC statis)</text>
+
+  <!-- B k-sample -->
+  <circle cx="270" cy="250" r="9" fill="#f59e0b"/>
+  <text x="285" y="245" class="sm3" fill="#b45309" font-weight="bold">B (k-sampel)</text>
+
+  <!-- C symmetric CUSUM -->
+  <circle cx="360" cy="200" r="9" fill="#8b5cf6"/>
+  <text x="375" y="195" class="sm3" fill="#7c3aed" font-weight="bold">C (CUSUM simetris)</text>
+
+  <!-- D usulan -->
+  <circle cx="150" cy="150" r="11" fill="#16a34a"/>
+  <text x="165" y="145" class="sm3" fill="#15803d" font-weight="bold">D (usulan)</text>
+
+  <!-- annotation -->
+  <text x="130" y="70" text-anchor="middle" class="sm3" fill="#15803d">Usulan lebih baik: kiri-bawah</text>
+  <text x="130" y="86" text-anchor="middle" class="sm3" fill="#94a3b8">(E dan U sama-sama kecil)</text>
+
+  <text x="360" y="540" text-anchor="middle" font-size="12" fill="#94a3b8">Lihat: 06_METRIK_EVALUASI.md · proposal subbab 2.7.1</text>
+</svg>

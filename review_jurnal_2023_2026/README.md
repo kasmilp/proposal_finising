@@ -2,7 +2,7 @@
 
 Folder ini berisi **review literatur terstruktur** untuk proposal:
 
-> *Pengembangan Histeresis Asimetris Sekuensial Sadar-Biaya untuk Penyesuaian Rasio Dinamis Pembagian Beban Multi-WAN Fiber Optic dan Satelit LEO (Studi Kasus: PCC pada Router MikroTik).*
+> *Pengembangan Histeresis Asimetris Sekuensial untuk Penyesuaian Rasio Dinamis Pembagian Beban Multi-WAN Fiber Optic dan Satelit LEO (Studi Kasus: PCC pada Router MikroTik).*
 
 ## 1. Isi folder
 
